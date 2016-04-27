@@ -30,6 +30,13 @@ var fs = require('fs');
 var path = require('path');
 var npmlink = require('./npm-link');
 
+function pad(number) {
+    if (number < 10) {
+        return '0' + number;
+    }
+    return number;
+}
+
 module.exports = function*(argv) {
     var repos = flagutil.computeReposFromFlag('nightly');
     var cli = repoutil.getRepoById('cli');
@@ -86,12 +93,9 @@ module.exports = function*(argv) {
         cordovalibdir = process.cwd();
     });
 
-    yield updatePlatformsFile(path.join(cordovalibdir, 'src/cordova/platformsConfig.json'), SHAJSON);
-
-
     var currentDate = new Date();
     var nightlyVersion = '-nightly.' + currentDate.getFullYear() + '.' +
-                        currentDate.getMonth() + '.' + currentDate.getDate();
+                        pad(currentDate.getMonth() + 1) + '.' + pad(currentDate.getDate());
     var cordovaLibVersion;
     //update package.json version for cli + lib, update lib reference for cli
     yield repoutil.forEachRepo([cordovaLib, cli], function*(repo) {
@@ -116,7 +120,7 @@ module.exports = function*(argv) {
     //run CLI + cordova-lib tests
     //NOTE: Commented out because of issues running on jenkins machine.
     //Will rely on medic to test nightlys instead
-    //yield runTests(cli, cordovaLib);
+    yield runTests(cli, cordovaLib);
 
     //create options object
     var options = {};
@@ -139,13 +143,11 @@ function *updatePlatformsFile(file, shajson) {
     var repos = flagutil.computeReposFromFlag('active-platform');
 
     yield repoutil.forEachRepo(repos, function*(repo) {
-        if(repo.id === 'windows') {
-            platformsJS[repo.id].version = shajson[repo.id];
-            platformsJS['windows8'].version = shajson[repo.id];
-        } else if(repo.id === 'blackberry') {
+        if (repo.id === 'blackberry') {
             platformsJS['blackberry10'].version = shajson[repo.id];
         } else {
             platformsJS[repo.id].version = shajson[repo.id];
+            platformsJS[repo.id].source = 'git';
         }
     });
 
