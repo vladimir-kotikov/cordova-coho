@@ -17,6 +17,7 @@ specific language governing permissions and limitations
 under the License.
 */
 
+var apputil = require('./apputil');
 var executil = require('./executil');
 var optimist = require('optimist');
 var flagutil = require('./flagutil');
@@ -52,13 +53,18 @@ module.exports = function*(argv) {
             desc: 'Don\'t actually publish to npm, just print what would be run.',
             type:'boolean'
         })
+        .options('ignore-test-failures', {
+            desc: 'Run the tests for cli and lib but don\'t fail the build if the tests are failing',
+            type:'boolean',
+            alias : 'ignoreTestFailures'
+        })
         .argv;
 
     if(argv.h) {
         optimist.showHelp();
         process.exit(1);
     }
-    
+
     //Grab currently published nightly version so we can unpublish it later
     //Assumes lib and cli have same version
     var oldNightlyVersion = yield executil.execHelper(executil.ARGS('npm view cordova dist-tags.nightly'));
@@ -120,7 +126,7 @@ module.exports = function*(argv) {
     //run CLI + cordova-lib tests
     //NOTE: Commented out because of issues running on jenkins machine.
     //Will rely on medic to test nightlys instead
-    yield runTests(cli, cordovaLib);
+    yield runTests(cli, cordovaLib, argv.ignoreTestFailures);
 
     //create options object
     var options = {};
@@ -156,8 +162,13 @@ function *updatePlatformsFile(file, shajson) {
     });
 }
 
-function *runTests(cli, lib) {
+function *runTests(cli, lib, ignoreTestFailures) {
     yield repoutil.forEachRepo([cli, lib], function *(repo) {
-           yield executil.execHelper(executil.ARGS('npm test'), false, false);
+        try {
+            yield executil.execHelper(executil.ARGS('npm test'), false, ignoreTestFailures);
+        } catch (e) {
+            if (!ignoreTestFailures) throw e;
+            apputil.print('Skipping failing tests due to "ignore-test-failures flag"');
+        }
     });
 }
