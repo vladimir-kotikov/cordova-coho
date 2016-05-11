@@ -69,7 +69,10 @@ function *createLink(argv) {
 module.exports = createLink;
 
 function getPathFromModuleName(moduleName) {
-    if (moduleName == "cordova-lib" || moduleName == "cordova-common") {
+    if (moduleName == "cordova-lib" ||
+        moduleName == "cordova-common" ||
+        moduleName == "cordova-fetch") {
+
         return("cordova-lib" + path.sep + moduleName);
     }
 
