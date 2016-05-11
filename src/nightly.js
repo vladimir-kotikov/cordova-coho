@@ -30,6 +30,7 @@ var gitutil = require('./gitutil');
 var fs = require('fs');
 var path = require('path');
 var npmlink = require('./npm-link');
+var repoclone = require('./repo-clone');
 
 function pad(number) {
     if (number < 10) {
@@ -70,7 +71,8 @@ module.exports = function*(argv) {
     var oldNightlyVersion = yield executil.execHelper(executil.ARGS('npm view cordova dist-tags.nightly'));
     console.log(oldNightlyVersion);
 
-    //Update Repos
+    // Clone and update Repos
+    yield repoclone.cloneRepos(repos, /*silent=*/true);
     yield repoupdate.updateRepos(repos);
 
     //remove local changes and sync up with remote master
