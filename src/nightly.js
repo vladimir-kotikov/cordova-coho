@@ -81,29 +81,10 @@ module.exports = function*(argv) {
         yield gitutil.resetFromOrigin();
     })
 
-    //get SHAS from platforms
-    var SHAJSON = yield retrieveSha(repos);
-
-    //save SHAJSON in cordova-cli repo
-    yield repoutil.forEachRepo([cli], function*() {
-        //need to get the path to cordova-cli using executil
-        var cordovaclidir = process.cwd();
-        fs.writeFileSync((path.join(cordovaclidir, 'shas.json')), JSON.stringify(SHAJSON, null, 4), 'utf8', function(err) {
-            if (err) return console.log (err);
-        });
-
-    });
-
-    //Update platform references at cordova-lib/src/cordova/platformsConfig.json
-    var cordovalibdir;
-    yield repoutil.forEachRepo([cordovaLib], function*() {
-        //need to get the path to cordova-lib using executil
-        cordovalibdir = process.cwd();
-    });
-
     var currentDate = new Date();
     var nightlyVersion = '-nightly.' + currentDate.getFullYear() + '.' +
                         pad(currentDate.getMonth() + 1) + '.' + pad(currentDate.getDate());
+
     var cordovaLibVersion;
     //update package.json version for cli + lib, update lib reference for cli
     yield repoutil.forEachRepo([cordovaLib, cli], function*(repo) {
@@ -127,12 +108,10 @@ module.exports = function*(argv) {
 
     // npm install cli
     yield repoutil.forEachRepo([cli], function*(repo) {
-        yield executil.execHelper(executil.ARGS('npm install'), false, false);
+        yield executil.execHelper(executil.ARGS('npm install'), /*silent=*/true, false);
     });
 
     //run CLI + cordova-lib tests
-    //NOTE: Commented out because of issues running on jenkins machine.
-    //Will rely on medic to test nightlys instead
     yield runTests(cli, cordovaLib, argv.ignoreTestFailures);
 
     //create options object
