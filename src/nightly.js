@@ -123,6 +123,11 @@ module.exports = function*(argv) {
     //npm link repos that should be linked
     yield npmlink();
 
+    // npm install cli
+    yield repoutil.forEachRepo([cli], function*(repo) {
+        yield executil.execHelper(executil.ARGS('npm install'), false, false);
+    });
+
     //run CLI + cordova-lib tests
     //NOTE: Commented out because of issues running on jenkins machine.
     //Will rely on medic to test nightlys instead

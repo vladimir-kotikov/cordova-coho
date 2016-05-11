@@ -57,7 +57,9 @@ function *createLink(argv) {
 
     npmLinkOut("cordova-common");
     npmLinkIn("cordova-common", "cordova-lib");
-    npmLinkIn("cordova-common", "cordova-android");
+
+    npmLinkOut("cordova-fetch");
+    npmLinkIn("cordova-fetch", "cordova-lib");
 
     npmLinkOut("cordova-lib");
     npmLinkIn("cordova-lib", "cordova-plugman");
