@@ -67,9 +67,10 @@ module.exports = function*(argv) {
     }
 
     //Grab currently published nightly version so we can unpublish it later
-    //Assumes lib and cli have same version
-    var oldNightlyVersion = yield executil.execHelper(executil.ARGS('npm view cordova dist-tags.nightly'));
-    console.log(oldNightlyVersion);
+    var oldNightlyVersions = {};
+    oldNightlyVersions.cli = yield executil.execHelper(executil.ARGS('npm view cordova dist-tags.nightly'));
+    oldNightlyVersions.lib = yield executil.execHelper(executil.ARGS('npm view cordova-lib dist-tags.nightly'));
+    console.log('oldNightlyVersions: ' + JSON.stringify(oldNightlyVersions));
 
     // Clone and update Repos
     yield repoclone.cloneRepos(repos, /*silent=*/true);
@@ -127,7 +128,7 @@ module.exports = function*(argv) {
     yield npmpublish.publishTag(options);
 
     //unpublish old nightly
-    options.version = oldNightlyVersion;
+    options.version = oldNightlyVersions;
     yield npmpublish.unpublish(options);
 }
 

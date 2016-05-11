@@ -121,8 +121,13 @@ function *unpublish(options) {
 
     var repos = flagutil.computeReposFromFlag(argv.r);
 
+    if (typeof argv.version !== 'object') {
+        // CLI use case: coho npm-unpublish-nightly -r cli -r lib --version "{ ""cli"": ""6.2.0-nightly.2016.5.11+123345"", ""lib"": ""6.2.0-nightly.2016.5.11+234456"" }" --pretend
+        argv.version = JSON.parse(argv.version);
+    }
+
     yield repoutil.forEachRepo(repos, function*(repo) {
-        yield executil.execOrPretend(executil.ARGS('npm unpublish '+ repo.id + '@' + argv.version), argv.pretend);
+        yield executil.execOrPretend(executil.ARGS('npm unpublish '+ repo.id + '@' + argv.version[repo.id]), argv.pretend);
     })
 }
 
