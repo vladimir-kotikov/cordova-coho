@@ -40,7 +40,7 @@ function pad(number) {
 }
 
 module.exports = function*(argv) {
-    var repos = flagutil.computeReposFromFlag('nightly');
+    var repos = flagutil.computeReposFromFlag('tools');
     var cli = repoutil.getRepoById('cli');
     var cordovaLib = repoutil.getRepoById('lib');
     var opt = flagutil.registerHelpFlag(optimist);
